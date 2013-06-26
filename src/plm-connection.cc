@@ -118,6 +118,7 @@ void plm_connection::send_command(
     cmd_out_buf_ += cmd;
     cmd_out_buf_ += data;
 
+    out_cmd_ = cmd;
     cmd_send_done_ = done;
 
     buffered_connection::write(
@@ -224,8 +225,7 @@ void plm_connection::on_cmd_data_receive()
 
     response.data.assign(cmd_data_.begin(), cmd_data_.begin() + data_len);
 
-    // TODO check that it is the same command???
-    if(cmd_send_done_ != 0) {
+    if(cmd_send_done_ != 0 && out_cmd_ == cmd_num_buf_) {
         // TODO send later
         cmd_send_done_->run(response);
         cmd_send_done_ = 0;

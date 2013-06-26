@@ -100,6 +100,7 @@ private:
 
     std::set<plm_command_listener *> listeners_;
 
+    char out_cmd_;
     std::string cmd_out_buf_;
     callback1<plm_response> *cmd_send_done_;
 

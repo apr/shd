@@ -3,7 +3,6 @@
 
 
 SOURCES = \
-	main.cc \
 	buffered-connection.cc \
 	io-buffer.cc \
 	plm-connection.cc \
@@ -11,9 +10,13 @@ SOURCES = \
 	select-server.cc \
 	test-connection.cc \
 
-all:
-	g++ -g -o shd $(SOURCES)
+all: shd on-off
 
+shd: $(SOURCES) main.cc
+	g++ -g -o shd $(SOURCES) main.cc
+
+on-off: $(SOURCES) on-off.cc
+	g++ -g -o on-off $(SOURCES) on-off.cc
 
 
 test: io-buffer_test plm-util_test
@@ -31,4 +34,5 @@ clean:
 	rm -f shd *.o core
 	rm -f io-buffer_test
 	rm -f plm-util_test
+	rm -f on-off
 
