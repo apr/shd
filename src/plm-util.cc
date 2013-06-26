@@ -34,16 +34,5 @@ std::string hex_to_bin(const std::string &hex)
 }
 
 
-int command_data_size(int cmd)
-{
-    switch(cmd) {
-    case 0x50: return 9;
-    case 0x60: return 7;
-    }
-
-    return -1;
-}
-
-
 }
 
