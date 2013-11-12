@@ -69,18 +69,33 @@ private:
 };
 
 
-class test_echo_connection2 : public net::buffered_connection {
+class peer_fd : public net::fd_interface {
 public:
-    test_echo_connection2(int fd, net::select_server *ss);
+    explicit peer_fd(int fd);
+
+    virtual void open();
+    virtual void close();
 
     virtual int get_fd();
+
+    virtual int read(void *buf, int count);
+    virtual int write(const void *buf, int count);
+
+private:
+    int fd_;
+};
+
+class test_echo_connection2 : public net::buffered_connection {
+public:
+    test_echo_connection2(peer_fd *fd, net::select_server *ss);
+    ~test_echo_connection2();
 
 private:
     void read_done();
     void write_done();
 
 private:
-    int fd_;
+    peer_fd *fd_;
     net::select_server *ss_;
     char buf_[10];
 };

@@ -92,7 +92,7 @@ private:
 
 private:
     O *obj_;
-    R (O::*ptr_)();
+    R (O::*ptr_)(P1, P2);
     P1 param1_;
     P2 param2_;
 };

@@ -137,23 +137,10 @@ void select_server::deregister_for_write(connection *conn)
 }
 
 
-void select_server::register_for_error(connection *conn)
-{
-    error_registrations_.insert(conn);
-}
-
-
-void select_server::deregister_for_error(connection *conn)
-{
-    error_registrations_.erase(conn);
-}
-
-
 void select_server::deregister_connection(connection *conn)
 {
     deregister_for_read(conn);
     deregister_for_write(conn);
-    deregister_for_error(conn);
 }
 
 
@@ -176,7 +163,6 @@ void select_server::loop()
 {
     fd_set read_set;
     fd_set write_set;
-    fd_set error_set;
 
     while(true) {
         struct timeval timeout;
@@ -184,9 +170,6 @@ void select_server::loop()
 
         max_fd = std::max(
             init_fd_set(write_registrations_, &write_set),
-            max_fd);
-        max_fd = std::max(
-            init_fd_set(error_registrations_, &error_set),
             max_fd);
 
         // TODO hide this inside a function
@@ -203,7 +186,7 @@ void select_server::loop()
             fill_timeval(tm, &timeout);
         }
 
-        int ret = select(max_fd + 1, &read_set, &write_set, &error_set, &timeout);
+        int ret = select(max_fd + 1, &read_set, &write_set, 0, &timeout);
 
         if(ret == -1 && errno == EINTR) {
             // TODO need to be more careful here, timers, death row
@@ -223,9 +206,6 @@ void select_server::loop()
             process_events(write_registrations_,
                            &write_set,
                            &connection::on_write);
-            process_events(error_registrations_,
-                           &error_set,
-                           &connection::on_error);
         }
 
         maybe_fire_alarms();
@@ -286,6 +266,8 @@ void select_server::execute_death_row()
 
 void select_server::run_all_callbacks()
 {
+    // TODO this loop may cause starvation of even processing if running
+    // callbacks constantly add new callabacks. Or is it a feature?
     std::list<callback *>::iterator it = callbacks_.begin();
 
     for(; it != callbacks_.end(); ++it) {

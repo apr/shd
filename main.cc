@@ -19,7 +19,7 @@ struct tt : public plm::plm_command_listener {
     {
         printf("RESP: %d\n", r.status);
         printf("DATA: ");
-        for(int i = 0; i < r.data.size(); ++i) {
+        for(size_t i = 0; i < r.data.size(); ++i) {
             printf("0x%x ", unsigned(r.data[i]));
         }
         printf("\n");
@@ -35,7 +35,7 @@ struct tt : public plm::plm_command_listener {
     {
         printf("ON_CMD: %d\n", cmd);
         printf("DATA: ");
-        for(int i = 0; i < data.size(); ++i) {
+        for(size_t i = 0; i < data.size(); ++i) {
             printf("0x%x ", unsigned(data[i]));
         }
         printf("\n");
@@ -45,6 +45,14 @@ struct tt : public plm::plm_command_listener {
 
 int main()
 {
+    net::select_server ss;
+    test_connection tc(&ss);
+
+    ss.register_for_read(&tc);
+
+    ss.loop();
+
+#if 0
     tt t;
 
     try {
@@ -69,5 +77,6 @@ int main()
     } catch(std::exception &ex) {
         printf("ERROR: %s\n", ex.what());
     }
+#endif
 }
 

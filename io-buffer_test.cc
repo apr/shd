@@ -8,7 +8,7 @@
 
 namespace net {
 
-TEST(io_buffer_test, empty)
+TEST(IoBufferTest, Empty)
 {
     io_buffer buf(10);
     std::pair<char *, int> write_buf = buf.get_raw_write_buffer();
@@ -23,7 +23,7 @@ TEST(io_buffer_test, empty)
 }
 
 
-TEST(io_buffer_test, write_test)
+TEST(IoBufferTest, WriteTest)
 {
     io_buffer buf(10);
     std::pair<char *, int> write_buf1 = buf.get_raw_write_buffer();
@@ -36,7 +36,7 @@ TEST(io_buffer_test, write_test)
 }
 
 
-TEST(io_buffer_test, read_test)
+TEST(IoBufferTest, ReadTest)
 {
     io_buffer buf(10);
 
@@ -66,7 +66,7 @@ TEST(io_buffer_test, read_test)
 }
 
 
-TEST(io_buffer_test, buffer_over_capacity)
+TEST(IoBufferTest, BufferOverCapacity)
 {
     io_buffer buf(2);
 
@@ -91,6 +91,45 @@ TEST(io_buffer_test, buffer_over_capacity)
     EXPECT_EQ(2, read_buf[1]);
     EXPECT_EQ(3, read_buf[2]);
     EXPECT_EQ(4, read_buf[3]);
+    EXPECT_TRUE(buf.empty());
+}
+
+
+TEST(IoBufferTest, SingleEOF)
+{
+    io_buffer buf(2);
+    buf.write_eof();
+    EXPECT_FALSE(buf.empty());
+    char read_buf[4];
+    int bytes_read = buf.read(read_buf, 4);
+    EXPECT_EQ(0, bytes_read);
+    EXPECT_TRUE(buf.empty());
+}
+
+
+TEST(IoBufferTest, ReadWithEOF)
+{
+    io_buffer buf(2);
+    std::pair<char *, int> write_buf1 = buf.get_raw_write_buffer();
+    buf.advance_write_pointer(2);
+    std::pair<char *, int> write_buf2 = buf.get_raw_write_buffer();
+    buf.advance_write_pointer(1);
+    buf.write_eof();
+
+    *write_buf1.first = 1;
+    *write_buf2.first = 1;
+    EXPECT_EQ(3, buf.read_size());
+
+    char read_buf[3];
+    int bytes_read = buf.read(read_buf, sizeof(read_buf));
+
+    EXPECT_EQ(3, bytes_read);
+    EXPECT_EQ(0, buf.read_size());
+    EXPECT_FALSE(buf.empty());
+
+    bytes_read = buf.read(read_buf, sizeof(read_buf));
+
+    EXPECT_EQ(0, bytes_read);
     EXPECT_TRUE(buf.empty());
 }
 

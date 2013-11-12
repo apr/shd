@@ -85,7 +85,7 @@ int test_connection::get_fd()
 void test_connection::on_read()
 {
     int new_fd = accept(fd_, 0, 0);
-#if 0
+#if 1
     test_echo_connection *conn = new test_echo_connection(new_fd, ss_);
     ss_->register_for_read(conn);
 #else
@@ -148,7 +148,8 @@ void test_echo_connection::on_read()
     if(b->size_ == 0) {
         delete b;
         ss_->deregister_connection(this);
-        ss_->register_for_delete(this);
+        delete this;
+//        ss_->register_for_delete(this);
         return;
     }
 
@@ -186,27 +187,65 @@ void test_echo_connection::on_error()
 }
 
 
-test_echo_connection2::test_echo_connection2(int fd, net::select_server *ss)
-    : buffered_connection(ss), fd_(fd), ss_(ss)
+peer_fd::peer_fd(int fd)
+    : fd_(fd)
 {
     if(fcntl(fd_, F_SETFL, O_NONBLOCK) == -1) {
         throw test_error("fcntl()", errno);
     }
+}
 
+void peer_fd::open()
+{
+}
+
+void peer_fd::close() {
+    ::close(fd_);
+}
+
+int peer_fd::get_fd()
+{
+    return fd_;
+}
+
+int peer_fd::read(void *buf, int count) {
+    int ret = ::read(fd_, buf, count);
+
+    if(ret == -1 && errno != EAGAIN) {
+        throw net::fd_exception(errno);
+    }
+    
+    return ret;
+}
+
+int peer_fd::write(const void *buf, int count) {
+    int ret = ::write(fd_, buf, count);
+
+    if(ret == -1 && errno != EAGAIN) {
+        throw net::fd_exception(errno);
+    }
+
+    return ret;
+}
+
+
+test_echo_connection2::test_echo_connection2(peer_fd *fd, net::select_server *ss)
+    : net::buffered_connection(fd, ss, ss), fd_(fd), ss_(ss)
+{
     write_done();
 }
 
 
-int test_echo_connection2::get_fd()
+test_echo_connection2::~test_echo_connection2()
 {
-    return fd_;
+    delete fd_;
 }
 
 
 void test_echo_connection2::read_done()
 {
     if(!is_ok()) {
-        close(fd_);
+        fd_->close();
         printf("not ok, done\n");
         ss_->register_for_delete(this);
         return;

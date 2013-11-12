@@ -23,24 +23,47 @@ struct plm_command_listener {
 
     // This function is called when the PLM receives a command with the given
     // PLM command number and the command data. The data is in binary form.
-    virtual void on_command(char cmd, const std::string &data) = 0;
+    virtual void on_command(const std::string &data) = 0;
 };
 
 
 class plm_exception : public std::exception {
 public:
-    explicit plm_exception(int err);
+    explicit plm_exception(const std::string &msg);
+    ~plm_exception() throw();
     virtual const char *what() const throw();
 private:
-    int err_;
+    std::string msg_;
 };
 
 
-// Low level connection to the PLM that is responsible for sending and
-// receiving PLM commands without interpreting them in any way.
+class plm_fd : public net::fd_interface {
+public:
+    explicit plm_fd(const std::string &serial_device);
+
+    virtual void open();
+    virtual void close();
+    virtual int get_fd();
+    virtual int read(void *buf, int count);
+    virtual int write(const void *buf, int count);
+
+private:
+    plm_fd(const plm_fd &);
+    plm_fd &operator= (const plm_fd &);
+
+    std::string serial_device_;
+    int fd_;
+};
+
+
+// Low level connection to the PLM that is responsible for immediate
+// communication with the modem. The connection can send commands and respond
+// with either ACK or NACK from the modem (note that this is not an ACK from
+// the device which is a separate command in its own right). It can also listen
+// for commands sent by the modem.
 class plm_connection : public net::buffered_connection {
 public:
-    plm_connection(const std::string &serial_device, net::select_server *ss);
+    plm_connection(net::fd_interface* fd, net::event_manager *em, net::executor *ex);
     ~plm_connection();
 
     struct plm_response {
@@ -50,11 +73,13 @@ public:
             ERROR   // unrecoverable error from the connection
         };
 
+        static plm_response ack(const std::string &data);
+        static plm_response nack();
+        static plm_response error();
+
         status_t status;
         std::string data;
     };
-
-    virtual int get_fd();
 
     // The connection registeres itself for read and is ready to receive
     // commands after this call. The connection does not start itself in the
@@ -66,11 +91,13 @@ public:
     void stop();
 
     // TODO
-    void send_command(char cmd,
-                      const std::string &data,
+    // Can throw a plm_exception if called during execution of a previous
+    // command. If an exception is thrown the callback will be deleted.
+    void send_command(const std::string &cmd,
                       callback1<plm_response> *done);
 
-    // TODO
+    // Manage listeners that listen for commands from other devices or from the
+    // modem.
     void add_listener(plm_command_listener *listener);
     void remove_listener(plm_command_listener *listener);
 
@@ -85,28 +112,30 @@ private:
 
     void on_stx_receive();
     void on_cmd_num_receive();
+    void on_cmd_first_byte_receive();
     void on_cmd_data_receive();
 
     // If the received command was originated at a remote device call all the
     // listeners.
     void maybe_notify_listeners();
 
+    void wait_for_stx();
+    void send_response(const plm_response &response);
+    void send_response_helper(callback1<plm_response> *done,
+                              plm_response response);
+
 private:
     // Not owned.
-    net::select_server *ss_;
-
-    std::string serial_device_;
-    int fd_;
+    net::executor *executor_;
 
     std::set<plm_command_listener *> listeners_;
 
-    char out_cmd_;
     std::string cmd_out_buf_;
     callback1<plm_response> *cmd_send_done_;
 
     char stx_buf_;
-    char cmd_num_buf_;
     std::vector<char> cmd_data_;
+    int cmd_len_;
 };
 
 

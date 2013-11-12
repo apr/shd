@@ -48,7 +48,17 @@ public:
         return capacity_ - write_offset_;
     }
 
+    bool is_eof() const { return buf_ == 0; }
+
+    static block *create_eof_marker() {
+        return new block;
+    }
+
 private:
+    block() : capacity_(0), buf_(0), read_offset_(0), write_offset_(0)
+    {
+    }
+
     block(const block &);
     block &operator= (const block &);
 
@@ -81,6 +91,13 @@ int io_buffer::read(char *buf, int len)
 
     while(!blocks_.empty() && written != len) {
         block *b = blocks_.front();
+
+        if(b->is_eof()) {
+            delete b;
+            blocks_.pop_front();
+            return 0;
+        }
+
         int to_copy = std::min(len - written, b->read_size());
 
         memcpy(buf + written, b->read_pointer(), to_copy);
@@ -114,7 +131,7 @@ bool io_buffer::empty() const
 {
     std::list<block *>::const_iterator it = blocks_.begin();
     for(; it != blocks_.end(); ++it) {
-        if((*it)->read_size() > 0) {
+        if((*it)->read_size() > 0 || (*it)->is_eof()) {
             return false;
         }
     }
@@ -136,6 +153,12 @@ void io_buffer::advance_write_pointer(int size)
     if(!blocks_.empty()) {
         blocks_.back()->advance_write_pointer(size);
     }
+}
+
+
+void io_buffer::write_eof()
+{
+    blocks_.push_back(block::create_eof_marker());
 }
 
 

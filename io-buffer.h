@@ -14,7 +14,8 @@ public:
     ~io_buffer();
 
     // Reads up to len bytes into the given buffer and advances the read
-    // position. Returns the amount actually written into the buffer.
+    // position. Returns the amount actually written into the buffer. It can
+    // return 0 which signifies end of the input stream.
     int read(char *buf, int len);
 
     // Total number of bytes available for read from this buffer.
@@ -29,6 +30,9 @@ public:
     // user has requested a write buffer first, will do nothing on the
     // completely empty buffer.
     void advance_write_pointer(int size);
+
+    // Appends a marker that signifies end of the input stream.
+    void write_eof();
 
 private:
     io_buffer(const io_buffer &);

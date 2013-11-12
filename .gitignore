@@ -1,7 +1,9 @@
 *.o
+*.d
+*.a
 *.swp
 *_test
 
-src/shd
-src/on-off
+shd
+on-off
 

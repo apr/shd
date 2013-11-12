@@ -10,24 +10,14 @@
 
 #include <sys/select.h>
 
+#include "event-manager.h"
+#include "executor.h"
+
 
 class callback;
 
 
 namespace net {
-
-// TODO
-class connection {
-public:
-    virtual ~connection() {}
-
-    virtual int get_fd() = 0;
-
-    virtual void on_read() {};
-    virtual void on_write() {};
-    virtual void on_error() {};
-};
-
 
 // TODO
 class alarm {
@@ -38,24 +28,22 @@ public:
 };
 
 
-class select_server {
+class select_server : public event_manager,
+                      public executor {
 public:
     select_server();
     ~select_server();
 
-    void register_for_read(connection *conn);
-    void deregister_for_read(connection *conn);
+    virtual void register_for_read(connection *conn);
+    virtual void deregister_for_read(connection *conn);
 
-    void register_for_write(connection *conn);
-    void deregister_for_write(connection *conn);
-
-    void register_for_error(connection *conn);
-    void deregister_for_error(connection *conn);
+    virtual void register_for_write(connection *conn);
+    virtual void deregister_for_write(connection *conn);
 
     // Deregister from receiving all events in one call.
-    void deregister_connection(connection *conn);
+    virtual void deregister_connection(connection *conn);
 
-    void run_later(callback *callback);
+    virtual void run_later(callback *callback);
 
     // Schedules execution of the given callback after the given number of
     // milliseconds has elapesed. The returned alarm object is owned by the
@@ -101,7 +89,6 @@ private:
     // Connections on these lists are not owned by the select server.
     connection_set read_registrations_;
     connection_set write_registrations_;
-    connection_set error_registrations_;
 
     // Callbacks for delayed execution.
     std::list<callback *> callbacks_;
