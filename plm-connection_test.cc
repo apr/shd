@@ -80,7 +80,7 @@ public:
     void loop_once() {
         done_ = false;
         event_manager_->send_signal();
-        executor_->run_all_now();
+        executor_->run_until_empty();
     }
 
 

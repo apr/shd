@@ -15,11 +15,18 @@ public:
     }
 
     void run_all_now() {
-        for(size_t i = 0; i < callbacks_.size(); ++i) {
-            callbacks_[i]->run();
-        }
+        std::vector<callback *> cs;
 
-        callbacks_.clear();
+        cs.swap(callbacks_);
+        for(size_t i = 0; i < cs.size(); ++i) {
+            cs[i]->run();
+        }
+    }
+
+    void run_until_empty() {
+        while(!empty()) {
+            run_all_now();
+        }
     }
 
     bool empty() const { return callbacks_.empty(); }

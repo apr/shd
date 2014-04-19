@@ -15,7 +15,7 @@ public:
 
     // Reads up to len bytes into the given buffer and advances the read
     // position. Returns the amount actually written into the buffer. It can
-    // return 0 which signifies end of the input stream.
+    // return 0 which signifies the end of the input stream.
     int read(char *buf, int len);
 
     // Total number of bytes available for read from this buffer.
@@ -31,7 +31,7 @@ public:
     // completely empty buffer.
     void advance_write_pointer(int size);
 
-    // Appends a marker that signifies end of the input stream.
+    // Appends a marker that signifies the end of the input stream.
     void write_eof();
 
 private:

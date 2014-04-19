@@ -196,7 +196,7 @@ void plm_connection::send_command(
     }
 
     cmd_out_buf_.clear();
-    cmd_out_buf_ += 0x02;
+    cmd_out_buf_ += 0x02;   // The leading STX symbol
     cmd_out_buf_ += cmd;
 
     buffered_connection::write(

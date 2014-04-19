@@ -37,6 +37,8 @@ private:
 };
 
 
+// File descriptor interface for the serial device connected to the PLM modem.
+// All operations may throw net::fd_exception on errors.
 class plm_fd : public net::fd_interface {
 public:
     explicit plm_fd(const std::string &serial_device);
@@ -90,9 +92,14 @@ public:
     // command in fligh it will be failed.
     void stop();
 
-    // TODO
-    // Can throw a plm_exception if called during execution of a previous
-    // command. If an exception is thrown the callback will be deleted.
+    // Sends a command to the modem. Please note that the 'cmd' is the modem
+    // command, and not just an INSTEON instruction. The operation is async and
+    // will call the given callback once a response from the modem is received
+    // (either ACK or NACK) or there was an error.
+    //
+    // Only one command can be sent at a time. Will throw a plm_exception if
+    // called during execution of a previous command. If an exception is thrown
+    // the callback will be deleted.
     void send_command(const std::string &cmd,
                       callback1<plm_response> *done);
 
