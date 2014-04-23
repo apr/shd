@@ -11,6 +11,7 @@ LIBCORE_SRCS = \
 	plm-connection.cc \
 	plm-util.cc \
 	select-server.cc \
+	sunrise-sunset.cc \
 	test-connection.cc
 
 
