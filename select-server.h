@@ -10,6 +10,7 @@
 
 #include <sys/select.h>
 
+#include "alarm-manager.h"
 #include "event-manager.h"
 #include "executor.h"
 
@@ -19,16 +20,9 @@ class callback;
 
 namespace net {
 
-// TODO
-class alarm {
-public:
-    virtual ~alarm() {}
 
-    virtual void stop() = 0;
-};
-
-
-class select_server : public event_manager,
+class select_server : public alarm_manager,
+                      public event_manager,
                       public executor {
 public:
     select_server();
@@ -45,13 +39,7 @@ public:
 
     virtual void run_later(callback *callback);
 
-    // Schedules execution of the given callback after the given number of
-    // milliseconds has elapesed. The returned alarm object is owned by the
-    // select server and is valid until either the callback finished execution
-    // of stop() is called on the alarm object. Careful, the pointer can become
-    // invalid at any point and should not be dereferenced after either the
-    // callback is done or the alarm is stopped.
-    alarm *schedule_alarm(callback *callback, int msecs);
+    virtual alarm *schedule_alarm(callback *callback, int msecs);
 
     void loop();
 
