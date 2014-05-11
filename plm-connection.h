@@ -8,10 +8,6 @@
 #include <vector>
 
 #include "buffered-connection.h"
-#include "select-server.h"
-
-
-class callback;
 
 
 namespace plm {

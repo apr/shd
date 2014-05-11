@@ -9,6 +9,7 @@ LIBCORE_SRCS = \
 	buffered-connection.cc \
 	io-buffer.cc \
 	plm-connection.cc \
+	plm-endpoint.cc \
 	plm-util.cc \
 	select-server.cc \
 	sunrise-sunset.cc \
@@ -23,7 +24,8 @@ ONOFF_SRCS = on-off.cc
 TESTS = io-buffer_test.cc \
 	plm-util_test.cc \
 	buffered-connection_test.cc \
-	plm-connection_test.cc
+	plm-connection_test.cc \
+	plm-endpoint_test.cc
 
 
 LIBCORE_OBJS = $(LIBCORE_SRCS:.cc=.o)

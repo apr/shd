@@ -5,9 +5,6 @@
 #include <termios.h>
 #include <unistd.h>
 
-// For debug only.
-#include <stdio.h>
-
 #include "plm-connection.h"
 #include "plm-util.h"
 #include "select-server.h"
@@ -245,6 +242,7 @@ void plm_connection::on_cmd_num_receive()
         // TODO reset the connection, falling back to getting stx might be too
         // error prone because 0x02 can be part of the payload of this unknown
         // command.
+        // TODO send SYSTEM_ERROR to the listener?
         wait_for_stx();
         return;
     }
@@ -271,7 +269,6 @@ void plm_connection::on_cmd_num_receive()
             wait_for_stx();
             return;
     }
-printf("CMD: 0x%x, len: %d\n", cmd_data_[0], cmd_len_);
 
     // TODO set timeout?
     read(&cmd_data_[1], 1,

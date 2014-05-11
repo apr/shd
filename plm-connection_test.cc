@@ -1,13 +1,11 @@
 
-#include <algorithm>
 #include <memory>
 #include <string>
-
-#include <string.h>
 
 #include "plm-connection.h"
 #include "mock-event-manager.h"
 #include "mock-executor.h"
+#include "mock-plm-fd.h"
 
 #include <gtest/gtest.h>
 
@@ -15,62 +13,12 @@
 namespace plm {
 
 
-class test_fd : public net::fd_interface {
-public:
-    test_fd() : is_closed_(true), read_pos_(0) {}
-
-    virtual void open() {
-        is_closed_ = false;
-    }
-
-    virtual void close() {
-        is_closed_ = true;
-    }
-
-    virtual int get_fd() { return 1; }
-
-    virtual int read(void *buf, int count) {
-        size_t len = std::min((size_t)count, read_buf_.size() - read_pos_);
-
-        if(len > 0) {
-            memcpy(buf, read_buf_.c_str() + read_pos_, len);
-            read_pos_ += len;
-        }
-
-        // If there is no more data in the buffer for now return EAGAIN.
-        return len > 0 ? len : -1;
-    }
-
-    virtual int write(const void *buf, int count) {
-        write_buf_.append((const char *)buf, count);
-        return count;
-    }
-
-    std::string get_write_buf() const {
-        return write_buf_;
-    }
-
-    void set_read_buf(const std::string &buf) {
-        read_buf_ = buf;
-        read_pos_ = 0;
-    }
-
-    bool is_closed() const { return is_closed_; }
-
-private:
-    bool is_closed_;
-    std::string write_buf_;
-    std::string read_buf_;
-    int read_pos_;
-};
-
-
 class PlmConnectionTest : public testing::Test {
 public:
     virtual void SetUp() {
         executor_.reset(new mock_executor);
         event_manager_.reset(new mock_event_manager);
-        fd_.reset(new test_fd);
+        fd_.reset(new mock_plm_fd);
         conn_.reset(new plm_connection(
             fd_.get(), event_manager_.get(), executor_.get()));
         done_ = false;
@@ -92,7 +40,7 @@ public:
 
     std::auto_ptr<mock_executor> executor_;
     std::auto_ptr<mock_event_manager> event_manager_;
-    std::auto_ptr<test_fd> fd_;
+    std::auto_ptr<mock_plm_fd> fd_;
     std::auto_ptr<plm_connection> conn_;
 
     bool done_;
