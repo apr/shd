@@ -7,6 +7,7 @@ CXXFLAGS = -g -O -Wall -Werror
 
 LIBCORE_SRCS = \
 	buffered-connection.cc \
+	ini-file-parser.cc \
 	io-buffer.cc \
 	plm-connection.cc \
 	plm-endpoint.cc \
@@ -22,6 +23,7 @@ ONOFF_SRCS = on-off.cc
 
 
 TESTS = io-buffer_test.cc \
+	ini-file-parser_test.cc \
 	plm-util_test.cc \
 	buffered-connection_test.cc \
 	plm-connection_test.cc \
