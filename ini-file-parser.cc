@@ -30,6 +30,7 @@ private:
     ini_parser(const ini_parser &);
     ini_parser &operator= (const ini_parser &);
 
+    bool is_eof() const;
     bool is_eol() const;
     char cur_char() const;
 
@@ -60,10 +61,16 @@ void ini_parser::reset()
 }
 
 
+inline bool ini_parser::is_eof() const
+{
+    return pos_ >= buf_.size();
+}
+
+
 // TODO make it handle "\r\n"
 inline bool ini_parser::is_eol() const
 {
-    if(pos_ >= buf_.size()) {
+    if(is_eof()) {
         return true;
     }
 
@@ -109,16 +116,23 @@ void ini_parser::parse_kv_line(kv_map_t *out)
         }
     }
 
-    if(pos_ < buf_.size()) {
+    if(!is_eof()) {
         // Skip EOL.
         ++pos_;
     }
+
+    // Back to next line.
+    state_ = LINE_START;
 
     key = trim(key);
     value = trim(value);
 
     if(key.empty() && !value.empty()) {
         throw parse_exception("A key cannot be empty");
+    }
+
+    if(key.empty()) {
+        return;
     }
 
     if(!out->insert(std::make_pair(key, value)).second) {
@@ -132,12 +146,12 @@ void ini_parser::parse(kv_map_t *out)
 {
     reset();
 
-    while(!is_eol()) {
+    while(!is_eof()) {
         if(state_ == LINE_START) {
             parse_kv_line(out);
         } else {
             // TODO produce a better error
-            throw parse_exception("Unexpected: " + buf_[pos_]);
+            throw parse_exception("Unexpected state");
         }
     }
 }

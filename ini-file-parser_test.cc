@@ -29,7 +29,7 @@ bool check_kv(const kv_map_t &vals,
 
 TEST(IniFileParserTest, EmptyFile)
 {
-    std::map<std::string, std::string> vals;
+    kv_map_t vals;
     parse_ini_file("", &vals);
     EXPECT_TRUE(vals.empty());
 }
@@ -37,10 +37,25 @@ TEST(IniFileParserTest, EmptyFile)
 
 TEST(IniFileParserTest, SimleKeyValuePair)
 {
-    std::map<std::string, std::string> vals;
+    kv_map_t vals;
     parse_ini_file("key = value", &vals);
     EXPECT_TRUE(check_kv(vals, "key", "value"));
 }
+
+
+TEST(IniFileParserTest, EmptyLines)
+{
+    kv_map_t vals;
+    parse_ini_file("\r", &vals);
+    EXPECT_TRUE(vals.empty());
+    parse_ini_file(" \r", &vals);
+    EXPECT_TRUE(vals.empty());
+    parse_ini_file(" ", &vals);
+    EXPECT_TRUE(vals.empty());
+    parse_ini_file("\r \r\r ", &vals);
+    EXPECT_TRUE(vals.empty());
+}
+
 
 }
 
