@@ -57,5 +57,16 @@ TEST(IniFileParserTest, EmptyLines)
 }
 
 
+TEST(IniFileParserTest, MultipleKVLines)
+{
+    kv_map_t vals;
+    parse_ini_file("key1 = val1\rkey2 = val2\nkey3 = val3", &vals);
+    EXPECT_EQ(3, vals.size());
+    EXPECT_EQ("val1", vals["key1"]);
+    EXPECT_EQ("val2", vals["key2"]);
+    EXPECT_EQ("val3", vals["key3"]);
+}
+
+
 }
 
