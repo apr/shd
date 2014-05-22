@@ -68,5 +68,18 @@ TEST(IniFileParserTest, MultipleKVLines)
 }
 
 
+TEST(IniFileParserTest, CommentLines)
+{
+    kv_map_t vals;
+    parse_ini_file("; a comment", &vals);
+    EXPECT_TRUE(vals.empty());
+    parse_ini_file("; one comment\n; another", &vals);
+    EXPECT_TRUE(vals.empty());
+    parse_ini_file("; comment1\nkey = val\r; comment2", &vals);
+    EXPECT_EQ(1, vals.size());
+    EXPECT_EQ("val", vals["key"]);
+}
+
+
 }
 

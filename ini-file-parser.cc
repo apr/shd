@@ -35,6 +35,7 @@ private:
     char cur_char() const;
 
     void parse_kv_line(kv_map_t *out);
+    void skip_comment();
 
 private:
     enum state_t {
@@ -142,16 +143,29 @@ void ini_parser::parse_kv_line(kv_map_t *out)
 }
 
 
+void ini_parser::skip_comment()
+{
+    while(!is_eol()) {
+        ++pos_;
+    }
+}
+
+
 void ini_parser::parse(kv_map_t *out)
 {
     reset();
 
     while(!is_eof()) {
+        if(cur_char() == ';') {
+            skip_comment();
+            continue;
+        }
+
         if(state_ == LINE_START) {
             parse_kv_line(out);
         } else {
             // TODO produce a better error
-            throw parse_exception("Unexpected state");
+            throw std::logic_error("Unexpected state");
         }
     }
 }
