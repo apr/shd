@@ -1,6 +1,7 @@
 
 #include <memory>
 
+#include "logger.h"
 #include "mock-alarm-manager.h"
 #include "mock-event-manager.h"
 #include "mock-executor.h"
@@ -22,6 +23,8 @@ public:
 
 
     virtual void SetUp() {
+        disable_logging();
+
         executor_.reset(new mock_executor);
         event_manager_.reset(new mock_event_manager);
         fd_.reset(new mock_plm_fd);
