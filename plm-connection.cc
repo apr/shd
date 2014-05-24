@@ -5,6 +5,7 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include "logger.h"
 #include "plm-connection.h"
 #include "plm-util.h"
 #include "select-server.h"
@@ -219,12 +220,11 @@ void plm_connection::on_stx_receive()
     }
 
     if(stx_buf_ != 0x02) {
-        // TODO log error, also send an error to the caller?
+        log_error("Unexpected STX character: 0x%x", stx_buf_);
         wait_for_stx();
         return;
     }
 
-    // TODO set timeout? what to do on timeout? leave it all to the caller?
     read(&cmd_data_[0], 1,
          make_callback(this, &plm_connection::on_cmd_num_receive));
 }
@@ -238,7 +238,7 @@ void plm_connection::on_cmd_num_receive()
     }
 
     if(!is_known_command(cmd_data_[0])) {
-        // TODO log unknown command
+        log_error("Unknown command: 0x%x", cmd_data_[0]);
         // TODO reset the connection, falling back to getting stx might be too
         // error prone because 0x02 can be part of the payload of this unknown
         // command.
@@ -265,12 +265,11 @@ void plm_connection::on_cmd_num_receive()
             break;
 
         default:
-            // TODO log the error
+            log_error("Unexpected command: 0x%x", cmd_data_[0]);
             wait_for_stx();
             return;
     }
 
-    // TODO set timeout?
     read(&cmd_data_[1], 1,
          make_callback(this, &plm_connection::on_cmd_first_byte_receive));
 }

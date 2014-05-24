@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 
+#include "logger.h"
 #include "plm-connection.h"
 #include "mock-event-manager.h"
 #include "mock-executor.h"
@@ -16,6 +17,8 @@ namespace plm {
 class PlmConnectionTest : public testing::Test {
 public:
     virtual void SetUp() {
+        disable_logging();
+
         executor_.reset(new mock_executor);
         event_manager_.reset(new mock_event_manager);
         fd_.reset(new mock_plm_fd);
