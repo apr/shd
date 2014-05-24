@@ -9,6 +9,7 @@ LIBCORE_SRCS = \
 	buffered-connection.cc \
 	ini-file-parser.cc \
 	io-buffer.cc \
+	logger.cc \
 	plm-connection.cc \
 	plm-endpoint.cc \
 	plm-util.cc \
