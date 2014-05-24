@@ -197,5 +197,30 @@ void parse_ini_file(const std::string &ini_file, kv_map_t *out)
 }
 
 
+void parse_list(const std::string &str, std::vector<std::string> *out)
+{
+    size_t pos = 0;
+
+    if(str.empty()) {
+        return;
+    }
+
+    while(pos != str.npos) {
+        size_t comma_pos = str.find(',', pos);
+
+        std::string chunk;
+        if(comma_pos == str.npos) {
+            chunk = str.substr(pos);
+            pos = comma_pos;
+        } else {
+            chunk = str.substr(pos, comma_pos - pos);
+            pos = comma_pos + 1;
+        }
+
+        out->push_back(trim(chunk));
+    }
+}
+
+
 }
 

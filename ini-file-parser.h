@@ -5,6 +5,7 @@
 #include <exception>
 #include <map>
 #include <string>
+#include <vector>
 
 
 namespace ini {
@@ -36,6 +37,12 @@ typedef std::map<std::string, std::string> kv_map_t;
 //
 // If there was any error, parse_exception will be thrown.
 void parse_ini_file(const std::string &ini_file, kv_map_t *out);
+
+
+// Parses a comma-separated list and populates the given vector. Every element
+// of the list is trimmed. The parser is very simple and there is not way to
+// escape the commas.
+void parse_list(const std::string &str, std::vector<std::string> *out);
 
 
 }

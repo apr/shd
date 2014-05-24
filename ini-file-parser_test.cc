@@ -81,5 +81,33 @@ TEST(IniFileParserTest, CommentLines)
 }
 
 
+TEST(ListParserTest, EmptyString)
+{
+    std::vector<std::string> vals;
+    parse_list("", &vals);
+    EXPECT_TRUE(vals.empty());
+}
+
+
+TEST(ListParserTest, SingleElement)
+{
+    std::vector<std::string> vals;
+    parse_list("test", &vals);
+    ASSERT_EQ(1, vals.size());
+    EXPECT_EQ("test", vals[0]);
+}
+
+
+TEST(ListParserTest, MultipleElements)
+{
+    std::vector<std::string> vals;
+    parse_list("test, test2 , test3   ", &vals);
+    ASSERT_EQ(3, vals.size());
+    EXPECT_EQ("test", vals[0]);
+    EXPECT_EQ("test2", vals[1]);
+    EXPECT_EQ("test3", vals[2]);
+}
+
+
 }
 
