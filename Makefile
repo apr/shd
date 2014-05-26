@@ -14,6 +14,7 @@ LIBCORE_SRCS = \
 	plm-endpoint.cc \
 	plm-util.cc \
 	select-server.cc \
+	shd-config.cc \
 	sunrise-sunset.cc \
 	test-connection.cc
 
