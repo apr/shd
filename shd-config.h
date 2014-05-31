@@ -26,6 +26,8 @@ public:
     shd_config();
     explicit shd_config(const std::string &file_path);
 
+    std::string serial_device() const;
+
     double longitude() const;
     double latitude() const;
 
@@ -40,6 +42,7 @@ private:
     void read_config(const std::string &file_path);
 
 private:
+    std::string serial_device_;
     double longitude_;
     double latitude_;
     std::vector<std::string> outside_lights_;

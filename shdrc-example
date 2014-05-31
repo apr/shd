@@ -1,0 +1,15 @@
+; Here is an example configuration file.
+; By default this file should be located in ~/.shdrc of the user the daemon is
+; running under.
+
+; A serical device the modem is attached to.
+serial-device = /dev/ttyUSB0
+
+; Latitude and longitude of the location of the device. Negative number for
+; longitude means West.
+latitude = 40.7127
+longitude = -74.0059
+
+; A comma separated list of INSTEON addresses for outside lights in hex.
+outside-lights = 021F3A, 5B2101
+

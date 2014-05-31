@@ -81,6 +81,12 @@ shd_config::shd_config(const std::string &file_path)
 }
 
 
+std::string shd_config::serial_device() const
+{
+    return serial_device_;
+}
+
+
 double shd_config::longitude() const
 {
     return longitude_;
@@ -121,7 +127,12 @@ void shd_config::read_config(const std::string &file_path)
         longitude_ = atof(it->second.c_str());
     }
 
-    it = vals.find("outside_lights");
+    it = vals.find("serial-device");
+    if(it != vals.end()) {
+        serial_device_ = it->second;
+    }
+
+    it = vals.find("outside-lights");
     if(it != vals.end()) {
         ini::parse_list(it->second, &outside_lights_);
         for(size_t i = 0; i < outside_lights_.size(); ++i) {
