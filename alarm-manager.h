@@ -9,7 +9,11 @@ class callback;
 namespace net {
 
 
-// TODO doc
+// A scheduled alarm handler. The main purpose of a handler is to provide the
+// holder means to cancel an alarm. The alarm can only be cancelled before it
+// has run and stop() should only be called once. The validity of the handler
+// is not guaranteed in any other case and the pointer to it should not be
+// dereferenced.
 class alarm {
 public:
     virtual ~alarm() {}

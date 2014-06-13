@@ -3,14 +3,16 @@
 #define CALLBACK_H_
 
 
-// TODO some doc
+// A class that abstracts an action. The user should call run() to execute the
+// action, the callback object will self destruct upon execution. Use one of
+// make_callback() functions to create a callback object.
 struct callback {
     virtual ~callback() {}
     virtual void run() = 0;
 };
 
 
-// TODO some doc
+// Same as 'callback' but takes an argument.
 template<class T>
 struct callback1 {
     virtual ~callback1() {}
@@ -41,8 +43,6 @@ private:
     R (O::*ptr_)();
 };
 
-
-// TODO generate all these helper classes and functions.
 
 
 template<class O, class P, class R>

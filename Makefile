@@ -15,8 +15,7 @@ LIBCORE_SRCS = \
 	plm-util.cc \
 	select-server.cc \
 	shd-config.cc \
-	sunrise-sunset.cc \
-	test-connection.cc
+	sunrise-sunset.cc
 
 
 SHD_SRCS = main.cc
