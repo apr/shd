@@ -8,13 +8,13 @@ class callback;
 namespace net {
 
 
-// TODO document use and nuances
+// A service that provides delayed execution of callbacks.
 class executor {
 public:
     virtual ~executor() {}
 
-    // TODO rename?
-    // TODO document ownership
+    // Schedules execution of the given callback sometime in the future. Takes
+    // ownership of the callback.
     virtual void run_later(callback *callback) = 0;
 };
 

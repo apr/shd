@@ -4,7 +4,7 @@
 
 
 // For the functions below longitude is positive for East and negative for
-// West, latitude is positive for North.
+// West.
 
 // Returns a fractional hour for sunrise on the given day at the given lat/lon
 // coordinate. Returns -1 if the sun never rises on that day.
