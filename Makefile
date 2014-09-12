@@ -14,6 +14,7 @@ LIBCORE_SRCS = \
 	plm-endpoint.cc \
 	plm-util.cc \
 	select-server.cc \
+	shd-app.cc \
 	shd-config.cc \
 	sunrise-sunset.cc
 
@@ -64,7 +65,7 @@ test: $(TEST_TGTS)
 	done
 
 %_test: %_test.o libcore.a
-	g++ $(CXXFLAGS) -o $@ $^ -lgtest -lgtest_main
+	g++ $(CXXFLAGS) -pthread -o $@ $^ -lgtest -lgtest_main
 
 
 %.o: %.cc
