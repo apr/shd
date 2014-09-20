@@ -238,20 +238,6 @@ void shd_light::on_command(const std::string &data)
 }
 
 
-
-// TODO
-// - make a class shd_light that would manage the lifecycle of
-//   on/off signal sending
-// - the app will upon a timed signal go through the list of lights and
-//   command them
-// - once done a light will call a callback back to the app
-// - the app on each light callback call will go through the list
-//   checking that all lights are done (either with success or
-//   with error)
-// - once all are done the app will set up next alarm to check
-//   time and command the lights
-
-
 shd_app::shd_app(const shd_config *config,
                  net::event_manager *event_manager,
                  net::alarm_manager *alarm_manager,
@@ -306,10 +292,6 @@ void shd_app::process_ligths()
                                  config_->latitude(),
                                  config_->longitude());
     double now = hour_now();
-
-    // Provide a half-hour margine around actual sunrise/sunset times.
-    hour_off += 0.5;
-    hour_on -= 0.5;
 
     std::list<shd_light *>::iterator it = lights_.begin();
     for(; it != lights_.end(); ++it) {
