@@ -1,0 +1,52 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          shd
+# Should-Start:      dbus hal ntp
+# Required-Start:    $local_fs $remote_fs
+# Required-Stop:     $local_fs $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Smart Home Daemon
+# Description:       Debian init script for the Smart Home Daemon
+### END INIT INFO
+#
+# An init.d script for systems derived from Debian.
+
+set -e
+
+DAEMON=/usr/local/shd/shd
+USER=shd
+
+test -x $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+case "$1" in
+  start)
+	log_daemon_msg "Starting Smart Home Daemon" "shd"
+	start-stop-daemon --start --quiet --exec $DAEMON --chuid $USER
+	log_end_msg $?
+  ;;
+  stop)
+        log_daemon_msg "Stopping Smart Home Daemon" "shd"
+        set +e
+        start-stop-daemon --stop --quiet --exec $DAEMON --chuid $USER --retry 5
+        set -e
+        log_end_msg $?
+  ;;
+  status)
+        status_of_proc "$DAEMON" shd && exit 0 || exit $?
+  ;;
+  restart)
+        $0 stop
+        sleep 1
+        $0 start
+  ;;
+  *)
+        echo "Usage: /etc/init.d/shd {start|stop|restart|status}"
+        exit 1
+  ;;
+esac
+
+exit 0
+
