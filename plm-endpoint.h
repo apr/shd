@@ -55,6 +55,10 @@ public:
     };
 
 
+    bool is_ok() const { return conn_.is_ok(); }
+    bool is_closed() const { return conn_.is_closed(); }
+
+
     // Commands.
 
     void send_light_on(const std::string &device_addr,

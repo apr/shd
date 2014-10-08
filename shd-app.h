@@ -5,7 +5,7 @@
 #include <list>
 #include <string>
 
-#include "plm-connection.h"
+#include "plm-endpoint.h"
 #include "shd-config.h"
 
 
@@ -51,7 +51,7 @@ private:
     net::executor *executor_;
 
     plm::plm_fd fd_;
-    plm::plm_connection conn_;
+    plm::plm_endpoint plm_;
 
     net::alarm *next_run_alarm_;
 

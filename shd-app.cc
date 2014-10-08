@@ -11,18 +11,17 @@
 #include "alarm-manager.h"
 #include "callback.h"
 #include "executor.h"
-#include "plm-connection.h"
+#include "plm-endpoint.h"
 #include "plm-util.h"
 #include "sunrise-sunset.h"
 
 
 
 // TODO
-class shd_light : public plm::plm_command_listener{
+class shd_light {
 public:
     shd_light(const std::string &addr,
-              plm::plm_connection *conn,
-              net::alarm_manager *alarm_manager,
+              plm::plm_endpoint *plm,
               net::executor *executor);
     ~shd_light();
 
@@ -39,19 +38,12 @@ private:
     shd_light(const shd_light &);
     shd_light& operator= (const shd_light &);
 
-    // Cancels the current command and resets state in preparation for the next.
-    void reset_command();
-    void send_command();
-
-    void on_plm_response(plm::plm_connection::plm_response r);
+    void on_plm_response(plm::plm_endpoint::response_t r);
     void on_timeout();
-
-    // PLM listener callback;
-    virtual void on_command(const std::string &data);
 
 private:
     enum state_t {
-        INIT, SENT, ON_WIRE, DONE, ERROR
+        INIT, SENT, DONE, ERROR
     };
 
     enum on_off_t {
@@ -61,60 +53,46 @@ private:
     std::string addr_;
 
     // not owned
-    plm::plm_connection *conn_;
-    net::alarm_manager *alarm_manager_;
+    plm::plm_endpoint *plm_;
     net::executor *executor_;
 
     state_t state_;
     on_off_t on_off_;
-    std::string cmd_;
     callback *done_;
-    net::alarm *timeout_;
-
-    int num_retries_;
 };
 
 
 shd_light::shd_light(const std::string &addr,
-                     plm::plm_connection *conn,
-                     net::alarm_manager *alarm_manager,
+                     plm::plm_endpoint *plm,
                      net::executor *executor)
-    : addr_(addr), conn_(conn),
-      alarm_manager_(alarm_manager), executor_(executor),
-      state_(INIT), on_off_(OFF), done_(0), timeout_(0)
+    : addr_(addr), plm_(plm), executor_(executor),
+      state_(INIT), on_off_(OFF), done_(0)
 {
-    conn_->add_listener(this);
 }
 
 
 shd_light::~shd_light()
 {
-    reset_command();
-    conn_->remove_listener(this);
 }
 
 
 void shd_light::light_on(callback *done)
 {
-    reset_command();
-
     on_off_ = ON;
-    cmd_ = char(0x62) + addr_ + plm::hex_to_bin("0F12FF");
     done_ = done;
-
-    send_command();
+    state_ = SENT;
+    plm_->send_light_on(addr_,
+                        make_callback(this, &shd_light::on_plm_response));
 }
 
 
 void shd_light::light_off(callback *done)
 {
-    reset_command();
-
     on_off_ = OFF;
-    cmd_ = char(0x62) + addr_ + plm::hex_to_bin("0F1300");
     done_ = done;
-
-    send_command();
+    state_ = SENT;
+    plm_->send_light_off(addr_,
+                         make_callback(this, &shd_light::on_plm_response));
 }
 
 
@@ -136,103 +114,14 @@ bool shd_light::is_off() const
 }
 
 
-void shd_light::reset_command()
+void shd_light::on_plm_response(plm::plm_endpoint::response_t r)
 {
-    if(timeout_) {
-        timeout_->stop();
-        timeout_ = 0;
-    }
-
-    state_ = INIT;
-    cmd_.clear();
-    delete done_;
-    done_ = 0;
-
-    num_retries_ = 5;
-}
-
-
-void shd_light::send_command()
-{
-    if(num_retries_-- <= 0) {
+    if(r.status == plm::plm_endpoint::response_t::OK) {
+        state_ = DONE;
+    } else {
         state_ = ERROR;
-        executor_->run_later(done_);
-        done_ = 0;
-        return;
     }
 
-    state_ = SENT;
-// TODO this is risky, it may happen that the timeout arrives earlier than the
-// response from the connection and then the timeout handler will try to
-// reexecute on top of the first command causing an exception to be thrown.
-#if 0
-    timeout_ = alarm_manager_->schedule_alarm(
-        make_callback(this, &shd_light::on_timeout),
-        1000);
-#endif
-    conn_->send_command(cmd_,
-        make_callback(this, &shd_light::on_plm_response));
-}
-
-
-void shd_light::on_plm_response(plm::plm_connection::plm_response r)
-{
-    if(timeout_) {
-        timeout_->stop();
-        timeout_ = 0;
-    }
-
-    if(r.status != plm::plm_connection::plm_response::ACK) {
-        send_command();
-        return;
-    }
-
-    state_ = ON_WIRE;
-    timeout_ = alarm_manager_->schedule_alarm(
-        make_callback(this, &shd_light::on_timeout),
-        3000);
-}
-
-
-void shd_light::on_timeout()
-{
-    timeout_ = 0;
-    send_command();
-}
-
-
-void shd_light::on_command(const std::string &data)
-{
-    if(data[0] != 0x50) {
-        // Wrong command, don't care.
-        return;
-    }
-
-    std::string from_addr = data.substr(1, 3);
-    if(from_addr != addr_) {
-        // Not our light.
-        return;
-    }
-
-    // cmd_[5] has the insteon command (0x12 or 0x13; on or off).
-    if(data[8] != cmd_[5]) {
-        // Response to a wrong command.
-        return;
-    }
-
-    if(timeout_) {
-        timeout_->stop();
-        timeout_ = 0;
-    }
-
-    char flags = data[7];
-    if((flags & 0xf0) != 0x20) {
-        // NACK
-        send_command();
-        return;
-    }
-
-    state_ = DONE;
     executor_->run_later(done_);
     done_ = 0;
 }
@@ -245,14 +134,13 @@ shd_app::shd_app(const shd_config *config,
     : config_(config), event_manager_(event_manager),
       alarm_manager_(alarm_manager), executor_(executor),
       fd_(config->serial_device()),
-      conn_(&fd_, event_manager, executor),
+      plm_(&fd_, alarm_manager, event_manager, executor),
       next_run_alarm_(0)
 {
     for(size_t i = 0; i < config->outside_lights().size(); ++i) {
         std::string addr = config->outside_lights()[i];
         lights_.push_back(new shd_light(addr,
-                                        &conn_,
-                                        alarm_manager_,
+                                        &plm_,
                                         executor_));
     }
 }
@@ -323,15 +211,15 @@ void shd_app::next_run()
 {
     next_run_alarm_ = 0;
 
-    if(!conn_.is_ok()) {
-        conn_.stop();
+    if(!plm_.is_ok()) {
+        plm_.stop();
     }
 
-    if(conn_.is_closed()) {
-        conn_.start();
+    if(plm_.is_closed()) {
+        plm_.start();
     }
 
-    if(!conn_.is_ok() || conn_.is_closed()) {
+    if(!plm_.is_ok() || plm_.is_closed()) {
         // TODO need to log if the connection cannot be opened, but only once.
         next_run_alarm_ = alarm_manager_->schedule_alarm(
             make_callback(this, &shd_app::next_run),
