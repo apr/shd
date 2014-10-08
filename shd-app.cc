@@ -1,9 +1,6 @@
 
 #include "shd-app.h"
 
-// TODO For debugging, remove later.
-#include <stdio.h>
-
 #include <time.h>
 
 #include <string>
@@ -187,16 +184,10 @@ void shd_app::process_ligths()
 
         if(now > hour_off && now < hour_on) {
             if(!light->is_off()) {
-                // TODO remove
-                printf("%s - now: %f, h_off: %f, h_on: %f, turning off\n",
-                    ctime(&time_now), now, hour_off, hour_on);
                 light->light_off(make_callback(this, &shd_app::light_done));
             }
         } else {
             if(!light->is_on()) {
-                // TODO remove
-                printf("%s - now: %f, h_off: %f, h_on: %f, turning on\n",
-                    ctime(&time_now), now, hour_off, hour_on);
                 light->light_on(make_callback(this, &shd_app::light_done));
             }
         }
