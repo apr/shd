@@ -121,7 +121,7 @@ private:
     plm_connection conn_;
 
     class plm_listener_proxy;
-    std::auto_ptr<plm_listener_proxy> plm_listener_proxy_;
+    std::unique_ptr<plm_listener_proxy> plm_listener_proxy_;
 
     net::alarm_manager *alarm_manager_;  // not owned
 

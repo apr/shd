@@ -2,7 +2,7 @@
 .PHONY: all clean test
 
 
-CXXFLAGS = -g -O -Wall -Werror
+CXXFLAGS = -g -O -Wall -Werror -std=c++11
 
 
 LIBCORE_SRCS = \

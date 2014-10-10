@@ -98,10 +98,10 @@ public:
         done_ = true;
     }
 
-    std::auto_ptr<mock_executor> executor_;
-    std::auto_ptr<mock_event_manager> event_manager_;
-    std::auto_ptr<one_char_fd> fd_;
-    std::auto_ptr<buffered_connection> conn_;
+    std::unique_ptr<mock_executor> executor_;
+    std::unique_ptr<mock_event_manager> event_manager_;
+    std::unique_ptr<one_char_fd> fd_;
+    std::unique_ptr<buffered_connection> conn_;
     bool done_;
 };
 

@@ -41,10 +41,10 @@ public:
     }
 
 
-    std::auto_ptr<mock_executor> executor_;
-    std::auto_ptr<mock_event_manager> event_manager_;
-    std::auto_ptr<mock_plm_fd> fd_;
-    std::auto_ptr<plm_connection> conn_;
+    std::unique_ptr<mock_executor> executor_;
+    std::unique_ptr<mock_event_manager> event_manager_;
+    std::unique_ptr<mock_plm_fd> fd_;
+    std::unique_ptr<plm_connection> conn_;
 
     bool done_;
     plm_connection::plm_response response_;

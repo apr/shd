@@ -58,11 +58,11 @@ public:
     }
 
 
-    std::auto_ptr<mock_executor> executor_;
-    std::auto_ptr<mock_event_manager> event_manager_;
-    std::auto_ptr<mock_plm_fd> fd_;
-    std::auto_ptr<mock_alarm_manager> alarm_manager_;
-    std::auto_ptr<plm_endpoint> endpoint_;
+    std::unique_ptr<mock_executor> executor_;
+    std::unique_ptr<mock_event_manager> event_manager_;
+    std::unique_ptr<mock_plm_fd> fd_;
+    std::unique_ptr<mock_alarm_manager> alarm_manager_;
+    std::unique_ptr<plm_endpoint> endpoint_;
 
     bool done_;
     plm_endpoint::response_t response_;
