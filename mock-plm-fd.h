@@ -18,17 +18,17 @@ class mock_plm_fd : public net::fd_interface {
 public:
     mock_plm_fd() : is_closed_(true), read_pos_(0) {}
 
-    virtual void open() {
+    virtual void open() override {
         is_closed_ = false;
     }
 
-    virtual void close() {
+    virtual void close() override {
         is_closed_ = true;
     }
 
-    virtual int get_fd() { return 1; }
+    virtual int get_fd() override { return 1; }
 
-    virtual int read(void *buf, int count) {
+    virtual int read(void *buf, int count) override {
         size_t len = std::min((size_t)count, read_buf_.size() - read_pos_);
 
         if(len > 0) {
@@ -40,7 +40,7 @@ public:
         return len > 0 ? len : -1;
     }
 
-    virtual int write(const void *buf, int count) {
+    virtual int write(const void *buf, int count) override {
         write_buf_.append((const char *)buf, count);
         return count;
     }

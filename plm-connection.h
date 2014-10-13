@@ -39,11 +39,11 @@ class plm_fd : public net::fd_interface {
 public:
     explicit plm_fd(const std::string &serial_device);
 
-    virtual void open();
-    virtual void close();
-    virtual int get_fd();
-    virtual int read(void *buf, int count);
-    virtual int write(const void *buf, int count);
+    virtual void open() override;
+    virtual void close() override;
+    virtual int get_fd() override;
+    virtual int read(void *buf, int count) override;
+    virtual int write(const void *buf, int count) override;
 
 private:
     plm_fd(const plm_fd &);

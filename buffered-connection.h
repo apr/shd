@@ -82,9 +82,9 @@ private:
     buffered_connection(const buffered_connection &);
     buffered_connection &operator= (const buffered_connection &);
 
-    virtual int get_fd();
-    virtual void on_read();
-    virtual void on_write();
+    virtual int get_fd() override;
+    virtual void on_read() override;
+    virtual void on_write() override;
 
     // Purges all outstanding io ops. If 'call_callbacks' is true the io ops
     // callbacks will be enqueued in the executor for execution, otherwise they
