@@ -1,4 +1,5 @@
 
+#include <functional>
 #include <memory>
 
 #include "logger.h"
@@ -51,10 +52,9 @@ public:
     }
 
 
-    callback1<plm_endpoint::response_t> *make_done_callback() {
-        return make_callback(
-            (PlmEndpointTest *)this,
-            &PlmEndpointTest::done_callback);
+    std::function<void(plm_endpoint::response_t)> make_done_func() {
+        using std::placeholders::_1;
+        return std::bind(&PlmEndpointTest::done_callback, this, _1);
     }
 
 
@@ -79,7 +79,7 @@ TEST_F(PlmEndpointTest, StartStop) {
 
 TEST_F(PlmEndpointTest, SendLightOn) {
     endpoint_->start();
-    endpoint_->send_light_on("\x01\x02\x03", make_done_callback());
+    endpoint_->send_light_on("\x01\x02\x03", make_done_func());
 
     loop_once();
 
@@ -101,7 +101,7 @@ TEST_F(PlmEndpointTest, SendLightOn) {
 
 TEST_F(PlmEndpointTest, SendLightOff) {
     endpoint_->start();
-    endpoint_->send_light_off("\x01\x02\x03", make_done_callback());
+    endpoint_->send_light_off("\x01\x02\x03", make_done_func());
 
     loop_once();
 

@@ -3,6 +3,7 @@
 
 #include <time.h>
 
+#include <functional>
 #include <string>
 
 #include "alarm-manager.h"
@@ -12,6 +13,8 @@
 #include "plm-util.h"
 #include "sunrise-sunset.h"
 
+
+using std::placeholders::_1;
 
 
 // TODO
@@ -78,8 +81,9 @@ void shd_light::light_on(callback *done)
     on_off_ = ON;
     done_ = done;
     state_ = SENT;
-    plm_->send_light_on(addr_,
-                        make_callback(this, &shd_light::on_plm_response));
+    plm_->send_light_on(
+        addr_,
+        std::bind(&shd_light::on_plm_response, this, _1));
 }
 
 
@@ -88,8 +92,9 @@ void shd_light::light_off(callback *done)
     on_off_ = OFF;
     done_ = done;
     state_ = SENT;
-    plm_->send_light_off(addr_,
-                         make_callback(this, &shd_light::on_plm_response));
+    plm_->send_light_off(
+        addr_,
+        std::bind(&shd_light::on_plm_response, this, _1));
 }
 
 

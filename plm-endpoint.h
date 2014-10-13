@@ -2,6 +2,7 @@
 #ifndef PLM_ENDPOINT_H_
 #define PLM_ENDPOINT_H_
 
+#include <functional>
 #include <memory>
 #include <queue>
 #include <string>
@@ -62,9 +63,9 @@ public:
     // Commands.
 
     void send_light_on(const std::string &device_addr,
-                       callback1<response_t> *done);
+                       const std::function<void(response_t)> &done);
     void send_light_off(const std::string &device_addr,
-                        callback1<response_t> *done);
+                        const std::function<void(response_t)> &done);
 
 private:
     plm_endpoint(const plm_endpoint &);
@@ -76,7 +77,8 @@ private:
             INIT, SENT, NEED_RESEND, WAIT_DEV, DONE
         };
 
-        command_t(const std::string &cmd, callback1<response_t> *callaback)
+        command_t(const std::string &cmd,
+                  const std::function<void(response_t)> &callaback)
             : state(INIT), command(cmd), done(callaback), timeout_alarm(0)
         {}
 
@@ -90,7 +92,7 @@ private:
 
         state_t state;
         std::string command;
-        callback1<response_t> *done;
+        std::function<void(response_t)> done;
         net::alarm *timeout_alarm;
     };
 

@@ -59,8 +59,9 @@ void plm_endpoint::stop()
 }
 
 
-void plm_endpoint::send_light_on(const std::string &device_addr,
-                                 callback1<response_t> *done)
+void plm_endpoint::send_light_on(
+    const std::string &device_addr,
+    const std::function<void(response_t)> &done)
 {
     std::string cmd = char(0x62) + device_addr + "\x0f\x12\xff";
 
@@ -72,8 +73,9 @@ void plm_endpoint::send_light_on(const std::string &device_addr,
 }
 
 
-void plm_endpoint::send_light_off(const std::string &device_addr,
-                                  callback1<response_t> *done)
+void plm_endpoint::send_light_off(
+    const std::string &device_addr,
+    const std::function<void(response_t)> &done)
 {
     std::string cmd = char(0x62) + device_addr +
         std::string("\x0f\x13\x00", 3);  // Be careful about trailing \nul.
@@ -104,7 +106,7 @@ void plm_endpoint::on_plm_command(const std::string &data)
         // ACK
         if(top_command().state == command_t::WAIT_DEV) {
             top_command().state = command_t::DONE;
-            top_command().done->run(response_t(response_t::OK));
+            top_command().done(response_t(response_t::OK));
             command_queue_.pop();
         }
 
@@ -127,7 +129,7 @@ void plm_endpoint::on_command_sent(plm_connection::plm_response r)
 
     if(r.status == plm_connection::plm_response::ERROR) {
         top_command().state = command_t::DONE;
-        top_command().done->run(response_t(response_t::ERROR));
+        top_command().done(response_t(response_t::ERROR));
         command_queue_.pop();
         return;
     }
@@ -205,7 +207,7 @@ void plm_endpoint::clear_command_queue(response_t resp)
 {
     while(!command_queue_.empty()) {
         top_command().stop_alarm();
-        top_command().done->run(resp);
+        top_command().done(resp);
         command_queue_.pop();
     }
 }
