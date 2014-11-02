@@ -39,7 +39,8 @@ public:
 
     virtual void run_later(callback *callback);
 
-    virtual alarm *schedule_alarm(callback *callback, int msecs);
+    virtual alarm *schedule_alarm(
+        const std::function<void()> &callback, int msecs) override;
 
     void loop();
 

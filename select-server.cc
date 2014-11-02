@@ -38,24 +38,19 @@ void fill_timeval(double secs, struct timeval *tv)
 
 class select_server::alarm_impl : public alarm {
 public:
-    explicit alarm_impl(callback *callback)
-        : callback_(callback)
+    explicit alarm_impl(const std::function<void()> &callback)
+        : callback_(callback), fired_(false)
     {
     }
 
-    ~alarm_impl() {
-        delete callback_;
-    }
-
     virtual void stop() {
-        delete callback_;
-        callback_ = 0;
+        fired_ = true;
     }
 
     void fire() {
-        if(callback_) {
-            callback_->run();
-            callback_ = 0;
+        if(!fired_) {
+            fired_ = true;
+            callback_();
         }
     }
 
@@ -63,7 +58,8 @@ private:
     alarm_impl(const alarm_impl &);
     alarm_impl& operator= (const alarm_impl &);
 
-    callback *callback_;
+    std::function<void()> callback_;
+    bool fired_;
 };
 
 
@@ -152,7 +148,9 @@ void select_server::run_later(callback *callback)
 }
 
 
-alarm *select_server::schedule_alarm(callback *callback, int msecs) {
+alarm *select_server::schedule_alarm(
+    const std::function<void()> &callback, int msecs)
+{
     alarm_impl *ret = new alarm_impl(callback);
     alarm_queue_.push(alarm_entry(time_now() + double(msecs) / 1000, ret));
     return ret;

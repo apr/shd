@@ -218,7 +218,7 @@ void shd_app::next_run()
     if(!plm_.is_ok() || plm_.is_closed()) {
         // TODO need to log if the connection cannot be opened, but only once.
         next_run_alarm_ = alarm_manager_->schedule_alarm(
-            make_callback(this, &shd_app::next_run),
+            std::bind(&shd_app::next_run, this),
             60000);  // 1 min
         return;
     }
@@ -239,7 +239,7 @@ void shd_app::light_done()
 
     if(all_done) {
         next_run_alarm_ = alarm_manager_->schedule_alarm(
-            make_callback(this, &shd_app::next_run),
+            std::bind(&shd_app::next_run, this),
             60000);  // 1 min
     }
 }

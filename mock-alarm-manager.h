@@ -2,37 +2,36 @@
 #ifndef MOCK_ALARM_MANAGER_H_
 #define MOCK_ALARM_MANAGER_H_
 
+#include <functional>
 #include <list>
 
 #include "alarm-manager.h"
-#include "callback.h"
 
 
 class mock_alarm_manager : public net::alarm_manager {
 private:
     class alarm_impl : public net::alarm {
     public:
-        explicit alarm_impl(callback *c) : callback_(c) {}
-
-        ~alarm_impl() {
-            delete callback_;
-        }
+        explicit alarm_impl(const std::function<void()> &c)
+            : callback_(c), fired_(false) {}
 
         virtual void stop() {
-            delete callback_;
-            callback_ = 0;
+            fired_ = true;
         }
 
         void fire() {
-            if(callback_) callback_->run();
-            callback_ = 0;
+            if(!fired_) {
+                callback_();
+                fired_ = true;
+            }
         }
 
     private:
         alarm_impl(const alarm_impl &);
         alarm_impl &operator= (const alarm_impl &);
 
-        callback *callback_;
+        std::function<void()> callback_;
+        bool fired_;
     };
 
 public:
@@ -46,7 +45,9 @@ public:
         }
     }
 
-    virtual net::alarm *schedule_alarm(callback* callback, int msecs) {
+    virtual net::alarm *schedule_alarm(
+        const std::function<void()> &callback, int msecs)
+    {
         alarm_impl *ret = new alarm_impl(callback);
         alarms_.push_back(ret);
         return ret;

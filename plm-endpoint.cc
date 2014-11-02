@@ -1,4 +1,6 @@
 
+#include <functional>
+
 #include "alarm-manager.h"
 #include "plm-endpoint.h"
 #include "plm-util.h"
@@ -143,8 +145,7 @@ void plm_endpoint::on_command_sent(plm_connection::plm_response r)
     // confirmation.
     top_command().state = command_t::WAIT_DEV;
     top_command().timeout_alarm = alarm_manager_->schedule_alarm(
-        make_callback(this, &plm_endpoint::on_device_timeout),
-        ACK_TIMEOUT);
+        std::bind(&plm_endpoint::on_device_timeout, this), ACK_TIMEOUT);
 }
 
 
@@ -185,8 +186,7 @@ void plm_endpoint::send_top_command()
     }
 
     top_command().timeout_alarm = alarm_manager_->schedule_alarm(
-        make_callback(this, &plm_endpoint::on_modem_timeout),
-        ACK_TIMEOUT);
+        std::bind(&plm_endpoint::on_modem_timeout, this), ACK_TIMEOUT);
     conn_.send_command(top_command().command,
         make_callback(this, &plm_endpoint::on_command_sent));
 

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <functional>
 #include <string>
 
 #include "plm-connection.h"
@@ -62,13 +63,13 @@ private:
         if(r.status != plm::plm_connection::plm_response::ACK) {
             printf("Command response: %d, resending\n", r.status);
             resend_alarm_ = ss_->schedule_alarm(
-                make_callback(this, &cmd_executor::on_resend_timeout),
+                std::bind(&cmd_executor::on_resend_timeout, this),
                 1000);
             return;
         }
 
         ack_timeout_ = ss_->schedule_alarm(
-            make_callback(this, &cmd_executor::on_ack_timeout),
+            std::bind(&cmd_executor::on_resend_timeout, this),
             5000);
     }
 
