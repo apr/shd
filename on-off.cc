@@ -11,6 +11,9 @@
 #include "select-server.h"
 
 
+using std::placeholders::_1;
+
+
 class cmd_executor : public plm::plm_command_listener {
 public:
     cmd_executor(const std::string &cmd, net::select_server *ss)
@@ -77,7 +80,7 @@ private:
     {
         resend_alarm_ = 0;
         conn_.send_command(cmd_,
-            make_callback(this, &cmd_executor::on_response));
+            std::bind(&cmd_executor::on_response, this, _1));
     }
 
     void on_ack_timeout()

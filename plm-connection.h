@@ -3,6 +3,7 @@
 #define PLM_CONNECTIION_H_
 
 #include <exception>
+#include <functional>
 #include <set>
 #include <string>
 #include <vector>
@@ -39,11 +40,11 @@ class plm_fd : public net::fd_interface {
 public:
     explicit plm_fd(const std::string &serial_device);
 
-    virtual void open() override;
-    virtual void close() override;
-    virtual int get_fd() override;
-    virtual int read(void *buf, int count) override;
-    virtual int write(const void *buf, int count) override;
+    void open() override;
+    void close() override;
+    int get_fd() override;
+    int read(void *buf, int count) override;
+    int write(const void *buf, int count) override;
 
 private:
     plm_fd(const plm_fd &);
@@ -97,7 +98,7 @@ public:
     // called during execution of a previous command. If an exception is thrown
     // the callback will be deleted.
     void send_command(const std::string &cmd,
-                      callback1<plm_response> *done);
+                      const std::function<void(plm_response)> &done);
 
     // Manage listeners that listen for commands from other devices or from the
     // modem.
@@ -124,8 +125,6 @@ private:
 
     void wait_for_stx();
     void send_response(const plm_response &response);
-    void send_response_helper(callback1<plm_response> *done,
-                              plm_response response);
 
 private:
     // Not owned.
@@ -134,7 +133,8 @@ private:
     std::set<plm_command_listener *> listeners_;
 
     std::string cmd_out_buf_;
-    callback1<plm_response> *cmd_send_done_;
+    std::function<void(plm_response)> cmd_send_done_;
+    bool cmd_in_progress_;
 
     char stx_buf_;
     std::vector<char> cmd_data_;

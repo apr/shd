@@ -5,11 +5,11 @@
 #include <sys/types.h>
 
 #include <exception>
+#include <functional>
 #include <queue>
 #include <utility>
 
 #include "event-manager.h"
-#include "callback.h"
 #include "io-buffer.h"
 
 
@@ -60,12 +60,12 @@ public:
     // Reads the len amount of bytes into the given buffer and calls the
     // callback. The callback will also be called in case of an error or if the
     // fd was closed.
-    void read(char *buf, int len, callback *done);
+    void read(char *buf, int len, const std::function<void()> &done);
 
     // Writes the len amount of bytes from the given buffer and calls the
     // callback. The callback will also be called in case of an error or if the
     // fd was closed.
-    void write(const char *buf, int len, callback *done);
+    void write(const char *buf, int len, const std::function<void()> &done);
 
     // Returns true if the connection is healthy, returns false on error or if
     // the connection was closed. It is the user's responsibility to check the
@@ -110,14 +110,14 @@ private:
     executor *executor_;
 
     struct io_op {
-        io_op(char *b, int l, callback *c)
+        io_op(char *b, int l, const std::function<void()> &c)
             : buf(b), len(l), done(c)
         {
         }
 
         char *buf;
         int len;
-        callback *done;
+        std::function<void()> done;
     };
 
     io_buffer read_buffer_;

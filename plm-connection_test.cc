@@ -13,6 +13,8 @@
 
 namespace plm {
 
+using std::placeholders::_1;
+
 
 class PlmConnectionTest : public testing::Test {
 public:
@@ -76,8 +78,7 @@ TEST_F(PlmConnectionTest, SendCommand)
     // The modem is expected to send ACK/NACK, so preset the fd read buffer.
     fd_->set_read_buf("\x02\x62\x01\x01\x01\x0f\x12\xff\x06");
     conn_->send_command("\x62\x01\x01\x01\x0f\x12\xff",
-        make_callback((PlmConnectionTest *)this,
-                      &PlmConnectionTest::done_callback));
+        std::bind(&PlmConnectionTest::done_callback, this, _1));
 
     loop_once();
 
@@ -88,8 +89,7 @@ TEST_F(PlmConnectionTest, SendCommand)
     // Now simulate a NACK.
     fd_->set_read_buf("\x2\x62\x15");
     conn_->send_command("\x62\x01\x01\x01\x0f\x12\xff",
-        make_callback((PlmConnectionTest *)this,
-                      &PlmConnectionTest::done_callback));
+        std::bind(&PlmConnectionTest::done_callback, this, _1));
 
     loop_once();
 

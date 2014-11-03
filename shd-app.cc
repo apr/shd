@@ -7,7 +7,6 @@
 #include <string>
 
 #include "alarm-manager.h"
-#include "callback.h"
 #include "executor.h"
 #include "plm-endpoint.h"
 #include "plm-util.h"
@@ -23,10 +22,9 @@ public:
     shd_light(const std::string &addr,
               plm::plm_endpoint *plm,
               net::executor *executor);
-    ~shd_light();
 
-    void light_on(callback *done);
-    void light_off(callback *done);
+    void light_on(const std::function<void()> &done);
+    void light_off(const std::function<void()> &done);
 
     // is_done will return true if the state machine has finished irrespective
     // of success, it may be true when none of is_on, is_off is true.
@@ -58,7 +56,7 @@ private:
 
     state_t state_;
     on_off_t on_off_;
-    callback *done_;
+    std::function<void()> done_;
 };
 
 
@@ -66,17 +64,12 @@ shd_light::shd_light(const std::string &addr,
                      plm::plm_endpoint *plm,
                      net::executor *executor)
     : addr_(addr), plm_(plm), executor_(executor),
-      state_(INIT), on_off_(OFF), done_(0)
+      state_(INIT), on_off_(OFF)
 {
 }
 
 
-shd_light::~shd_light()
-{
-}
-
-
-void shd_light::light_on(callback *done)
+void shd_light::light_on(const std::function<void()> &done)
 {
     on_off_ = ON;
     done_ = done;
@@ -87,7 +80,7 @@ void shd_light::light_on(callback *done)
 }
 
 
-void shd_light::light_off(callback *done)
+void shd_light::light_off(const std::function<void()> &done)
 {
     on_off_ = OFF;
     done_ = done;
@@ -125,7 +118,6 @@ void shd_light::on_plm_response(plm::plm_endpoint::response_t r)
     }
 
     executor_->run_later(done_);
-    done_ = 0;
 }
 
 
@@ -189,11 +181,11 @@ void shd_app::process_ligths()
 
         if(now > hour_off && now < hour_on) {
             if(!light->is_off()) {
-                light->light_off(make_callback(this, &shd_app::light_done));
+                light->light_off(std::bind(&shd_app::light_done, this));
             }
         } else {
             if(!light->is_on()) {
-                light->light_on(make_callback(this, &shd_app::light_done));
+                light->light_on(std::bind(&shd_app::light_done, this));
             }
         }
     }

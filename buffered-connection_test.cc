@@ -1,9 +1,9 @@
 
+#include <functional>
 #include <memory>
 #include <string>
 
 #include "buffered-connection.h"
-#include "callback.h"
 #include "event-manager.h"
 #include "executor.h"
 #include "mock-event-manager.h"
@@ -131,8 +131,7 @@ TEST_F(BufferedConnectionTest, SimpleRead)
 
     buf[0] = buf[1] = buf[2] = 0;
     conn_->read(buf, sizeof(buf),
-        make_callback((BufferedConnectionTest *)this,
-                      &BufferedConnectionTest::done_callback));
+        std::bind(&BufferedConnectionTest::done_callback, this));
     loop_once();
 
     EXPECT_EQ('a', buf[0]);
@@ -143,8 +142,7 @@ TEST_F(BufferedConnectionTest, SimpleRead)
 
     buf[0] = buf[1] = buf[2] = 0;
     conn_->read(buf, sizeof(buf),
-        make_callback((BufferedConnectionTest *)this,
-                      &BufferedConnectionTest::done_callback));
+        std::bind(&BufferedConnectionTest::done_callback, this));
     loop_once();
 
     EXPECT_EQ(0, buf[0]);
@@ -167,8 +165,7 @@ TEST_F(BufferedConnectionTest, SimpleWrite)
     EXPECT_TRUE(conn_->is_ok());
 
     conn_->write(buf, 1,
-        make_callback((BufferedConnectionTest *)this,
-                      &BufferedConnectionTest::done_callback));
+        std::bind(&BufferedConnectionTest::done_callback, this));
     loop_once();
 
     EXPECT_TRUE(conn_->is_ok());
@@ -176,8 +173,7 @@ TEST_F(BufferedConnectionTest, SimpleWrite)
     EXPECT_EQ("a", fd_->get_write_buf());
 
     conn_->write(buf, 3,
-        make_callback((BufferedConnectionTest *)this,
-                      &BufferedConnectionTest::done_callback));
+        std::bind(&BufferedConnectionTest::done_callback, this));
     loop_once();
 
     EXPECT_TRUE(conn_->is_ok());
@@ -195,8 +191,7 @@ TEST_F(BufferedConnectionTest, InterruptedRead)
     buf[0] = buf[1] = buf[2] = 0;
     fd_->set_read_again();
     conn_->read(buf, sizeof(buf),
-        make_callback((BufferedConnectionTest *)this,
-                      &BufferedConnectionTest::done_callback));
+        std::bind(&BufferedConnectionTest::done_callback, this));
     loop_once();
 
     EXPECT_TRUE(conn_->is_ok());
@@ -226,8 +221,7 @@ TEST_F(BufferedConnectionTest, InterruptedWrite)
 
     fd_->set_write_again();
     conn_->write(buf, 3,
-        make_callback((BufferedConnectionTest *)this,
-                      &BufferedConnectionTest::done_callback));
+        std::bind(&BufferedConnectionTest::done_callback, this));
     loop_once();
 
     EXPECT_TRUE(conn_->is_ok());

@@ -2,7 +2,7 @@
 #ifndef EXECUTOR_H_
 #define EXECUTOR_H_
 
-class callback;
+#include <functional>
 
 
 namespace net {
@@ -13,9 +13,8 @@ class executor {
 public:
     virtual ~executor() {}
 
-    // Schedules execution of the given callback sometime in the future. Takes
-    // ownership of the callback.
-    virtual void run_later(callback *callback) = 0;
+    // Schedules execution of the given callback sometime in the future.
+    virtual void run_later(const std::function<void()> &callback) = 0;
 };
 
 }

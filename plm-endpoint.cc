@@ -8,6 +8,9 @@
 
 namespace plm {
 
+using std::placeholders::_1;
+
+
 // TODO make this a parameter
 // TODO in fact there are two different timeouts - a timeout for the response
 // from the modem and a timeout for the response from a device
@@ -188,7 +191,7 @@ void plm_endpoint::send_top_command()
     top_command().timeout_alarm = alarm_manager_->schedule_alarm(
         std::bind(&plm_endpoint::on_modem_timeout, this), ACK_TIMEOUT);
     conn_.send_command(top_command().command,
-        make_callback(this, &plm_endpoint::on_command_sent));
+        std::bind(&plm_endpoint::on_command_sent, this, _1));
 
     top_command().state = command_t::SENT;
 }

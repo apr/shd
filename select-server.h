@@ -15,9 +15,6 @@
 #include "executor.h"
 
 
-class callback;
-
-
 namespace net {
 
 
@@ -37,7 +34,7 @@ public:
     // Deregister from receiving all events in one call.
     virtual void deregister_connection(connection *conn);
 
-    virtual void run_later(callback *callback);
+    void run_later(const std::function<void()> &callback) override;
 
     virtual alarm *schedule_alarm(
         const std::function<void()> &callback, int msecs) override;
@@ -80,7 +77,7 @@ private:
     connection_set write_registrations_;
 
     // Callbacks for delayed execution.
-    std::list<callback *> callbacks_;
+    std::list<std::function<void()>> callbacks_;
 
     struct placeholder {
         placeholder() {}

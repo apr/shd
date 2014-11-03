@@ -82,7 +82,8 @@ void buffered_connection::stop()
 }
 
 
-void buffered_connection::read(char *buf, int len, callback *done)
+void buffered_connection::read(
+    char *buf, int len, const std::function<void()> &done)
 {
     if(not_ok_) {
         executor_->run_later(done);
@@ -111,7 +112,8 @@ void buffered_connection::read(char *buf, int len, callback *done)
 }
 
 
-void buffered_connection::write(const char *buf, int len, callback *done)
+void buffered_connection::write(
+    const char *buf, int len, const std::function<void()> &done)
 {
     if(not_ok_) {
         executor_->run_later(done);
@@ -262,8 +264,6 @@ void buffered_connection::clear_queues(bool call_callbacks)
 
         if(call_callbacks) {
             executor_->run_later(op->done);
-        } else {
-            delete op->done;
         }
 
         delete op;

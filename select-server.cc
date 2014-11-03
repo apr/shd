@@ -5,12 +5,12 @@
 #include <string.h>
 
 #include <algorithm>
+#include <functional>
 #include <list>
 
 #include <sys/select.h>
 #include <sys/time.h>
 
-#include "callback.h"
 #include "select-server.h"
 
 
@@ -96,12 +96,6 @@ select_server::~select_server()
 {
     execute_death_row();
 
-    std::list<callback *>::iterator it = callbacks_.begin();
-    for(; it != callbacks_.end(); ++it) {
-        // TODO need to be careful if there ever exist permanent callbacks.
-        delete *it;
-    }
-
     while(!alarm_queue_.empty()) {
         delete alarm_queue_.top().alarm();
         alarm_queue_.pop();
@@ -140,11 +134,9 @@ void select_server::deregister_connection(connection *conn)
 }
 
 
-void select_server::run_later(callback *callback)
+void select_server::run_later(const std::function<void()> &callback)
 {
-    if(callback) {
-        callbacks_.push_back(callback);
-    }
+    callbacks_.push_back(callback);
 }
 
 
@@ -264,12 +256,12 @@ void select_server::execute_death_row()
 
 void select_server::run_all_callbacks()
 {
-    // TODO this loop may cause starvation of even processing if running
+    // TODO this loop may cause starvation of event processing if running
     // callbacks constantly add new callabacks. Or is it a feature?
-    std::list<callback *>::iterator it = callbacks_.begin();
+    std::list<std::function<void()>>::iterator it = callbacks_.begin();
 
     for(; it != callbacks_.end(); ++it) {
-        (*it)->run();
+        (*it)();
     }
 
     callbacks_.clear();

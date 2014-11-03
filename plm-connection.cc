@@ -143,7 +143,7 @@ plm_connection::plm_connection(
         net::fd_interface* fd, net::event_manager *em, net::executor *ex)
     : buffered_connection(fd, em, ex),
       executor_(ex),
-      cmd_send_done_(0),
+      cmd_in_progress_(false),
       cmd_len_(0)
 {
     // The longest command is 23 bytes, reserve some extra space.
@@ -179,13 +179,13 @@ void plm_connection::stop()
 
 void plm_connection::send_command(
     const std::string &cmd,
-    callback1<plm_response> *done)
+    const std::function<void(plm_response)> &done)
 {
-    if(cmd_send_done_ != 0) {
-        delete done;
+    if(cmd_in_progress_) {
         throw plm_exception("Can send only one command at a time");
     }
 
+    cmd_in_progress_ = true;
     cmd_send_done_ = done;
 
     if(!is_ok()) {
@@ -200,7 +200,7 @@ void plm_connection::send_command(
     buffered_connection::write(
         cmd_out_buf_.data(),
         cmd_out_buf_.length(),
-        make_callback(this, &plm_connection::on_cmd_write_done));
+        std::bind(&plm_connection::on_cmd_write_done, this));
 }
 
 
@@ -226,7 +226,7 @@ void plm_connection::on_stx_receive()
     }
 
     read(&cmd_data_[0], 1,
-         make_callback(this, &plm_connection::on_cmd_num_receive));
+         std::bind(&plm_connection::on_cmd_num_receive, this));
 }
 
 
@@ -271,7 +271,7 @@ void plm_connection::on_cmd_num_receive()
     }
 
     read(&cmd_data_[1], 1,
-         make_callback(this, &plm_connection::on_cmd_first_byte_receive));
+         std::bind(&plm_connection::on_cmd_first_byte_receive, this));
 }
 
 
@@ -294,7 +294,7 @@ void plm_connection::on_cmd_first_byte_receive()
 
     // Retrieve the rest of the command.
     read(&cmd_data_[2], cmd_len_ - 1,
-         make_callback(this, &plm_connection::on_cmd_data_receive));
+         std::bind(&plm_connection::on_cmd_data_receive, this));
 }
 
 
@@ -352,10 +352,8 @@ void plm_connection::maybe_notify_listeners()
 
     std::string data(cmd_data_.begin(), cmd_data_.begin() + cmd_len_ + 1);
 
-    for(std::set<plm_command_listener *>::iterator it = listeners_.begin();
-        it != listeners_.end(); ++it)
-    {
-        (*it)->on_command(data);
+    for(auto listener : listeners_) {
+        listener->on_command(data);
     }
 }
 
@@ -369,7 +367,7 @@ bool plm_connection::is_known_command(char cmd)
 void plm_connection::wait_for_stx()
 {
     read(&stx_buf_, 1,
-         make_callback(this, &plm_connection::on_stx_receive));
+         std::bind(&plm_connection::on_stx_receive, this));
 }
 
 
@@ -379,24 +377,8 @@ void plm_connection::send_response(const plm_response &response)
         return;
     }
 
-    // TODO this way of sending a response has a risk of leaking the callback
-    // if the wrapping callback will be deleted and not executed, fix this.
-    executor_->run_later(make_callback(
-        this,
-        &plm_connection::send_response_helper,
-        cmd_send_done_,
-        response));
-
-    cmd_send_done_ = 0;
-}
-
-
-void plm_connection::send_response_helper(
-    callback1<plm_response> *done, plm_connection::plm_response r)
-{
-    if(done != 0) {
-        done->run(r);
-    }
+    executor_->run_later(std::bind(cmd_send_done_, response));
+    cmd_in_progress_ = false;
 }
 
 
